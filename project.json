@@ -1,0 +1,8 @@
+{
+  "projectType": "fullstack",
+  "framework": "react",
+  "outputDirectory": "client/build",
+  "buildCommand": "cd client && npm install && npm run build",
+  "devCommand": "cd client && npm start",
+  "ignoreCommand": ""
+}

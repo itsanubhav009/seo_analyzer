@@ -20,7 +20,8 @@ function App() {
     setError('');
     
     try {
-      // Use relative URL for API when frontend and backend are deployed together
+      console.log('Making API request...');
+      
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
@@ -30,9 +31,7 @@ function App() {
       });
       
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('API Error:', errorData);
-        throw new Error(`Analysis failed: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
@@ -42,23 +41,19 @@ function App() {
       setKeywords(data.keywords || []);
       setIsLoading(false);
     } catch (err) {
-      console.error('Fetch Error:', err);
-      setError(`Failed to analyze text: ${err.message}. Please try again.`);
+      console.error('Error:', err);
+      setError(`Failed to analyze text: ${err.message}`);
       setIsLoading(false);
     }
   };
 
   const insertKeyword = (keyword) => {
-    // Simple insertion logic - insert at the beginning of a sentence
     const sentences = previewText.split('. ');
     
-    // Find a sentence that doesn't already contain the keyword
     for (let i = 0; i < sentences.length; i++) {
       if (!sentences[i].toLowerCase().includes(keyword.toLowerCase())) {
-        // Check if we can naturally include the keyword
         const words = sentences[i].split(' ');
-        if (words.length > 5) { // Only insert in longer sentences
-          // Insert after the first few words
+        if (words.length > 5) {
           const insertPosition = Math.min(3, Math.floor(words.length / 3));
           words.splice(insertPosition, 0, keyword);
           sentences[i] = words.join(' ');
@@ -144,7 +139,7 @@ function App() {
       </main>
       
       <footer className="app-footer">
-        <p>Last updated: 2025-06-07 17:11:02 | User: itsanubhav009</p>
+        <p>SEO Text Optimizer | User: itsanubhav009</p>
       </footer>
     </div>
   );
