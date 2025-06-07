@@ -22,7 +22,7 @@ function App() {
     try {
       console.log('Making API request...');
       
-      const response = await fetch('/api/analyze', {
+      const response = await fetch('/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

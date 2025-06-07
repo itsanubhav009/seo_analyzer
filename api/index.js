@@ -27,7 +27,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // API endpoint for text analysis
-app.post('/api/analyze', async (req, res) => {
+app.post('/api', async (req, res) => {
   console.log('Received POST request to /api/analyze');
   const { text } = req.body;
   
