@@ -17,6 +17,9 @@ app.options('*', cors());
 app.use(bodyParser.json());
 
 // Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working', timestamp: new Date().toISOString() });
+});
 app.get('/test', (req, res) => {
   res.json({ 
     message: 'API is working!', 
