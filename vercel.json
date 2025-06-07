@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "builds": [
+    { "src": "api/index.js", "use": "@vercel/node" },
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "build" } }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "src": "^/static/(.*)", "dest": "/build/static/$1" },
+    { "src": "^/favicon.ico", "dest": "/build/favicon.ico" },
+    { "src": "^/manifest.json", "dest": "/build/manifest.json" },
+    { "src": "^/(.*).(js|json|css|map|ico|png|jpg|jpeg|svg|gif|webp)", "dest": "/build/$1.$2" },
+    { "src": "/(.*)", "dest": "/build/index.html" }
+  ]
+}
