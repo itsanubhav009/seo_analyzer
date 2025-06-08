@@ -5,88 +5,39 @@ const axios = require('axios');
 const app = express();
 
 // --- START CORS Configuration ---
-// Define your allowed origins
+// Allow any Vercel deployment of your project and localhost for dev
 const allowedOrigins = [
-  'https://seo-analyzer-client-qon7-gm08grp2w-anubhavs-projects-f741798c.vercel.app', // Specific client origin from your error
-  // Add any other specific frontend origins if you have them (e.g., preview deployments)
-  /anubhavs-projects-f741798c\.vercel\.app$/, // Regex to allow any subdomain for your Vercel project
-  // Add localhost for development if needed (ensure your client runs on http for these)
-  // /http:\/\/localhost:\d+/,  // Example: for http://localhost:3000, http://localhost:5173 etc.
-  // /http:\/\/127\.0\.0\.1:\d+/
+  /^https:\/\/seo-analyzer-[a-z0-9-]+\.vercel\.app$/, // any vercel preview or production client (replace with your actual Vercel project pattern)
+  /^https:\/\/seo-analyzer-one\.vercel\.app$/,         // your API production URL
+  /^https:\/\/seo-analyzer-2b8f\.vercel\.app$/,        // your current client deployment
+  /^http:\/\/localhost:\d+$/,                          // localhost for development
+  /^http:\/\/127\.0\.0\.1:\d+$/,                       // 127.0.0.1 for dev
 ];
 
-// If your local client runs on HTTPS, adjust the regex accordingly or add specific https localhost origins
-
-// Add localhost and 127.0.0.1 based on your original custom middleware logic
-// (Assuming HTTP for local development, adjust if your local setup uses HTTPS)
-if (process.env.NODE_ENV !== 'production') { // A common way to detect development
-    allowedOrigins.push(/http:\/\/localhost:\d+/);
-    allowedOrigins.push(/http:\/\/127\.0\.0\.1:\d+/);
-}
-
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, Postman) or same-origin requests
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    let isOriginAllowed = false;
-    for (const allowedOrigin of allowedOrigins) {
-      if (typeof allowedOrigin === 'string' && allowedOrigin === origin) {
-        isOriginAllowed = true;
-        break;
-      }
-      if (allowedOrigin instanceof RegExp && allowedOrigin.test(origin)) {
-        isOriginAllowed = true;
-        break;
-      }
-    }
-
-    if (isOriginAllowed) {
-      callback(null, true); // Origin is allowed, reflect it in Access-Control-Allow-Origin
-    } else {
-      console.warn(`CORS: Origin ${origin} not allowed.`);
-      callback(new Error('Not allowed by CORS')); // Origin is not allowed
-    }
-  },
-  credentials: true, // This is important for sending cookies or authorization headers.
-  methods: 'GET,PUT,POST,DELETE,OPTIONS', // Explicitly list allowed methods. OPTIONS is crucial for preflight.
-  allowedHeaders: 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept',
-  optionsSuccessStatus: 200 // Ensures preflight requests (OPTIONS) return 200.
-};
-
-app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  let allowed = false;
+  if (!origin) allowed = true; // allow server-to-server and curl calls
+  else {
+    allowed = allowedOrigins.some((pattern) =>
+      typeof pattern === 'string'
+        ? pattern === origin
+        : pattern.test(origin)
+    );
+  }
+  if (allowed && origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 // --- END CORS Configuration ---
 
-
-// REMOVE your old CORS middleware:
-// app.use(cors({
-//   origin: '*',
-//   credentials: true
-// }));
-// app.use((req, res, next) => {
-//   const origin = req.headers.origin;
-//   if (!origin || 
-//       origin.includes('anubhavs-projects-f741798c.vercel.app') || 
-//       origin.includes('localhost') || 
-//       origin.includes('127.0.0.1')) {
-//     res.header('Access-Control-Allow-Origin', origin || '*');
-//   } else {
-//     res.header('Access-Control-Allow-Origin', '*');
-//   }
-//   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept');
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   if (req.method === 'OPTIONS') {
-//     return res.sendStatus(200);
-//   }
-//   next();
-// });
-
-
-// Parse JSON bodies
 app.use(express.json());
 
 // Root endpoint
