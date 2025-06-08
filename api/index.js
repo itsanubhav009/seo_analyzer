@@ -4,18 +4,36 @@ const axios = require('axios');
 
 const app = express();
 
-// Enable CORS for all origins
+// Enable CORS with specific configuration
 app.use(cors({
-  origin: '*',
+  origin: [
+    'https://seo-analyzer-client-qon7.vercel.app',
+    'https://seo-analyzer-wz5a-nl0jdoorr-anubhavs-projects-f741798c.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true
 }));
+
+// Additional CORS middleware for preflight
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Parse JSON bodies
 app.use(express.json());
-
-// Handle preflight OPTIONS requests
-app.options('*', cors());
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -46,6 +64,7 @@ app.get('/api/test', (req, res) => {
 app.post('/api/analyze', async (req, res) => {
   console.log('Received POST request to /api/analyze');
   console.log('Request body:', req.body);
+  console.log('Origin:', req.headers.origin);
   
   const { text } = req.body;
   
