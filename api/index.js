@@ -17,10 +17,25 @@ app.use(express.json());
 // Handle preflight OPTIONS requests
 app.options('*', cors());
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'SEO Analyzer API is running!', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      test: '/api/test',
+      analyze: '/api/analyze (POST)',
+      health: '/health'
+    }
+  });
+});
+
 // Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
-    message: 'API is working!', 
+    message: 'API test endpoint working!', 
     timestamp: new Date().toISOString(),
     method: req.method,
     environment: process.env.NODE_ENV || 'development'
@@ -30,6 +45,8 @@ app.get('/api/test', (req, res) => {
 // Main API endpoint for text analysis
 app.post('/api/analyze', async (req, res) => {
   console.log('Received POST request to /api/analyze');
+  console.log('Request body:', req.body);
+  
   const { text } = req.body;
   
   if (!text) {
@@ -51,6 +68,19 @@ app.post('/api/analyze', async (req, res) => {
     const fallbackData = generateMockAnalysis(text);
     return res.json(fallbackData);
   }
+});
+
+// GET version of analyze for testing
+app.get('/api/analyze', (req, res) => {
+  res.json({
+    message: 'Use POST method to analyze text',
+    example: {
+      method: 'POST',
+      url: '/api/analyze',
+      body: { text: 'Your text here' }
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Function to analyze text with TextRazor API
@@ -196,18 +226,40 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    uptime: process.uptime()
   });
 });
 
-// Catch-all for API routes
-app.all('/api/*', (req, res) => {
+// Handle any other routes
+app.use('*', (req, res) => {
   res.status(404).json({ 
-    error: 'API endpoint not found',
+    error: 'Endpoint not found',
     method: req.method,
-    path: req.path
+    path: req.originalUrl,
+    availableEndpoints: {
+      root: 'GET /',
+      test: 'GET /api/test',
+      analyze: 'POST /api/analyze',
+      health: 'GET /health'
+    },
+    timestamp: new Date().toISOString()
   });
 });
+
+// Start server for local development
+const PORT = process.env.PORT || 3001;
+
+if (require.main === module) {
+  // Only start server if this file is run directly (not imported)
+  app.listen(PORT, () => {
+    console.log(`🚀 SEO Analyzer API Server running on port ${PORT}`);
+    console.log(`📡 Local URL: http://localhost:${PORT}`);
+    console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
+    console.log(`💡 Health check: http://localhost:${PORT}/health`);
+    console.log(`⏰ Started at: ${new Date().toISOString()}`);
+  });
+}
 
 // Export for Vercel
 module.exports = app;
