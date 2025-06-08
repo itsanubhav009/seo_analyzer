@@ -22,12 +22,13 @@ app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'API is working!', 
     timestamp: new Date().toISOString(),
-    method: req.method
+    method: req.method,
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// API endpoint for text analysis
-app.post('/api', async (req, res) => {
+// Main API endpoint for text analysis
+app.post('/api/analyze', async (req, res) => {
   console.log('Received POST request to /api/analyze');
   const { text } = req.body;
   
@@ -54,7 +55,7 @@ app.post('/api', async (req, res) => {
 
 // Function to analyze text with TextRazor API
 async function analyzeWithTextRazor(text) {
-  const API_KEY = '3e0aaae0f349c179fd484eba3073815034b74bbd6ff2c839ebde1dff';
+  const API_KEY = process.env.TEXTRAZOR_API_KEY || '3e0aaae0f349c179fd484eba3073815034b74bbd6ff2c839ebde1dff';
   
   try {
     const response = await axios({
@@ -189,6 +190,15 @@ function generateAnalysis(originalText, keywords) {
     }
   };
 }
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
 
 // Catch-all for API routes
 app.all('/api/*', (req, res) => {

@@ -20,6 +20,18 @@
   font-size: 18px;
 }
 
+.api-status {
+  margin-top: 10px;
+}
+
+.api-status small {
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
 .app-main {
   display: flex;
   flex-direction: column;
@@ -66,6 +78,7 @@
     grid-template-columns: 1fr;
   }
 }
+
 /* Loading spinner */
 .loading-spinner {
   width: 40px;

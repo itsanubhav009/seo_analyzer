@@ -5,6 +5,9 @@ import KeywordList from './components/KeywordList';
 import TextPreview from './components/TextPreview';
 import './App.css';
 
+// Get API URL from environment variable
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
 function App() {
   const [inputText, setInputText] = useState('');
   const [seoResults, setSeoResults] = useState(null);
@@ -20,9 +23,9 @@ function App() {
     setError('');
     
     try {
-      console.log('Making API request...');
+      console.log('Making API request to:', `${API_BASE_URL}/api/analyze`);
       
-      const response = await fetch('/api', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,9 +45,48 @@ function App() {
       setIsLoading(false);
     } catch (err) {
       console.error('Error:', err);
-      setError(`Failed to analyze text: ${err.message}`);
+      
+      // Fallback to mock data
+      console.log('Using fallback mock data');
+      const mockData = generateMockAnalysis(text);
+      setSeoResults(mockData.analysis);
+      setKeywords(mockData.keywords || []);
+      setError(`API unavailable - using offline analysis (${err.message})`);
       setIsLoading(false);
     }
+  };
+
+  // Mock analysis function for fallback
+  const generateMockAnalysis = (text) => {
+    const wordCount = text.split(/\s+/).length;
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+    const avgWordsPerSentence = sentences > 0 ? wordCount / sentences : wordCount;
+    const readabilityScore = Math.max(0, Math.min(100, 100 - (avgWordsPerSentence - 10) * 5));
+    const keywordDensity = Math.round((wordCount * 0.02) * 10) / 10;
+
+    const improvementTips = [];
+    if (readabilityScore < 60) improvementTips.push('Consider using shorter sentences to improve readability.');
+    if (wordCount < 300) improvementTips.push('Content is quite short. Adding more relevant content may improve SEO.');
+    if (keywordDensity < 0.5) improvementTips.push('Consider increasing the use of primary keywords (aim for 1-2%).');
+    improvementTips.push('Add proper headings (H1, H2) to structure your content.');
+    improvementTips.push('Include relevant internal and external links.');
+
+    return {
+      analysis: {
+        readabilityScore: Math.round(readabilityScore),
+        keywordDensity,
+        wordCount,
+        improvementTips: improvementTips.length ? improvementTips : ['Your content looks good!']
+      },
+      keywords: [
+        { text: 'SEO optimization', relevance: 95 },
+        { text: 'content marketing', relevance: 88 },
+        { text: 'search engine', relevance: 82 },
+        { text: 'keyword research', relevance: 78 },
+        { text: 'digital marketing', relevance: 75 },
+        { text: 'web content', relevance: 70 }
+      ]
+    };
   };
 
   const insertKeyword = (keyword) => {
@@ -69,8 +111,11 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>SEO Text Optimizer</h1>
-        <p>Analyze and optimize your content for better search engine visibility</p>
+        <h1>SEO Text Analyzer</h1>
+        <p>AI-powered content analysis for better search engine visibility</p>
+        <div className="api-status">
+          <small>API: {API_BASE_URL}</small>
+        </div>
       </header>
       
       <main className="app-main">
@@ -78,14 +123,14 @@ function App() {
           <TextInput onSubmit={handleTextSubmit} />
           {!inputText && !isLoading && (
             <div className="instructions">
-              <p>Enter your text above to get SEO analysis and recommendations.</p>
+              <p>Enter your text above to get AI-powered SEO analysis and recommendations.</p>
             </div>
           )}
         </div>
         
         {isLoading && (
           <div className="loading">
-            <p>Analyzing your text...</p>
+            <p>Analyzing your text with AI...</p>
             <div className="loading-spinner"></div>
           </div>
         )}
@@ -139,7 +184,7 @@ function App() {
       </main>
       
       <footer className="app-footer">
-        <p>SEO Text Optimizer | User: itsanubhav009</p>
+        <p>2025-06-08 04:13:37 | User: itsanubhav009 | Powered by TextRazor AI</p>
       </footer>
     </div>
   );
