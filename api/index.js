@@ -4,14 +4,22 @@ const axios = require('axios');
 
 const app = express();
 
-// Enable CORS with specific configuration
+// Enable CORS with wildcard for all Vercel deployments
 app.use(cors({
-  origin: [
-    'https://seo-analyzer-client-qon7.vercel.app',
-    'https://seo-analyzer-wz5a-nl0jdoorr-anubhavs-projects-f741798c.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all Vercel deployments for this project
+    if (origin.includes('anubhavs-projects-f741798c.vercel.app') || 
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow all origins for development
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
@@ -19,17 +27,28 @@ app.use(cors({
 
 // Additional CORS middleware for preflight
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const origin = req.headers.origin;
+  
+  // Allow all Vercel deployments and localhost
+  if (!origin || 
+      origin.includes('anubhavs-projects-f741798c.vercel.app') || 
+      origin.includes('localhost') || 
+      origin.includes('127.0.0.1')) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept');
   res.header('Access-Control-Allow-Credentials', 'true');
   
   // Handle preflight
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
+    return res.sendStatus(200);
   }
+  
+  next();
 });
 
 // Parse JSON bodies
