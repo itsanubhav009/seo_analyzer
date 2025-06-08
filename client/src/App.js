@@ -6,7 +6,7 @@ import TextPreview from './components/TextPreview';
 import './App.css';
 
 // Get API URL from environment variable with proper fallback
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://seo-analyzer-client-cts9-nmy1jtisg-anubhavs-projects-f741798c.vercel.app';
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -190,7 +190,7 @@ function App() {
       </main>
       
       <footer className="app-footer">
-        <p>2025-06-08 04:55:53 | User: itsanubhav009 | Powered by TextRazor AI</p>
+        <p>2025-06-08 05:01:44 | User: itsanubhav009 | Powered by TextRazor AI</p>
       </footer>
     </div>
   );
