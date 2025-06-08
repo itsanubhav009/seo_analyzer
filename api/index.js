@@ -6,22 +6,7 @@ const app = express();
 
 // Enable CORS with wildcard for all Vercel deployments
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow all Vercel deployments for this project
-    if (origin.includes('anubhavs-projects-f741798c.vercel.app') || 
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1')) {
-      return callback(null, true);
-    }
-    
-    // Allow all origins for development
-    return callback(null, true);
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  origin: '*',
   credentials: true
 }));
 
