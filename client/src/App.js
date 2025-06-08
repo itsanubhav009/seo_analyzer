@@ -5,7 +5,7 @@ import KeywordList from './components/KeywordList';
 import TextPreview from './components/TextPreview';
 import './App.css';
 
-// Get API URL from environment variable
+// Get API URL from environment variable with proper fallback
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 function App() {
@@ -23,12 +23,15 @@ function App() {
     setError('');
     
     try {
-      console.log('Making API request to:', `${API_BASE_URL}/api/analyze`);
+      // Construct URL properly - remove trailing slash and ensure proper path
+      const apiUrl = `${API_BASE_URL.replace(/\/+$/, '')}/api/analyze`;
+      console.log('Making API request to:', apiUrl);
       
-      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ text }),
       });
@@ -115,6 +118,9 @@ function App() {
         <p>AI-powered content analysis for better search engine visibility</p>
         <div className="api-status">
           <small>API: {API_BASE_URL}</small>
+          <small style={{ marginLeft: '10px', color: '#28a745' }}>
+            Status: {process.env.NODE_ENV || 'development'}
+          </small>
         </div>
       </header>
       
@@ -184,7 +190,7 @@ function App() {
       </main>
       
       <footer className="app-footer">
-        <p>2025-06-08 04:51:10 | User: itsanubhav009 | Powered by TextRazor AI</p>
+        <p>2025-06-08 04:55:53 | User: itsanubhav009 | Powered by TextRazor AI</p>
       </footer>
     </div>
   );
