@@ -1,7 +1,7 @@
 import React from 'react';
 import './Results.css';
 
-function Results({ analysis }) {
+function Results({ analysis }) { // The analysis prop contains the results of the SEO analysis, including readability score, keyword density, content length, and improvement tips.
   return (
     <div className="results">
       <h2>SEO Analysis Results</h2>
@@ -10,12 +10,12 @@ function Results({ analysis }) {
         <div className="metric">
           <h3>Readability Score</h3>
           <div className="score-display">
-            <div className={`score-value ${getScoreClass(analysis.readabilityScore)}`}>
+            <div className={`score-value ${getScoreClass(analysis.readabilityScore)}`}> {/* The score value is dynamically styled based on the readability score. */}
               {analysis.readabilityScore}
             </div>
             <div className="score-label">{getReadabilityLabel(analysis.readabilityScore)}</div>
           </div>
-        </div>
+        </div> {/* The readability score is displayed with a dynamic class that indicates its quality, and a label that describes the readability level. */}
         
         <div className="metric">
           <h3>Keyword Density</h3>
@@ -24,7 +24,7 @@ function Results({ analysis }) {
               {analysis.keywordDensity}%
             </div>
           </div>
-        </div>
+        </div>  { /* The keyword density is displayed with a dynamic class that indicates whether it is within the recommended range. */}
         
         <div className="metric">
           <h3>Content Length</h3>
@@ -33,7 +33,7 @@ function Results({ analysis }) {
               {analysis.wordCount} words
             </div>
             <div className="score-label">
-              {getContentLengthLabel(analysis.wordCount)}
+              {getContentLengthLabel(analysis.wordCount)} {/* The content length is displayed with a label indicating its suitability for different types of content. */}
             </div>
           </div>
         </div>
@@ -43,10 +43,10 @@ function Results({ analysis }) {
         <h3>Optimization Tips</h3>
         <ul>
           {analysis.improvementTips.map((tip, index) => (
-            <li key={index}>{tip}</li>
+            <li key={index}>{tip}</li> 
           ))}
         </ul>
-      </div>
+      </div>{ /* The improvement tips are displayed as a list, providing actionable suggestions for enhancing the content's SEO. */}
     </div>
   );
 }

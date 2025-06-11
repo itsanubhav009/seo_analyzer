@@ -9,22 +9,21 @@ import './App.css';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://seo-analyzer-client-cts9-nmy1jtisg-anubhavs-projects-f741798c.vercel.app';
 
 function App() {
-  const [inputText, setInputText] = useState('');
-  const [seoResults, setSeoResults] = useState(null);
-  const [keywords, setKeywords] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [previewText, setPreviewText] = useState('');
-
+  const [inputText, setInputText] = useState(''); // used to put input data in the text input field
+  const [seoResults, setSeoResults] = useState(null);//seoResults is used to store the analysis results from the API
+  const [keywords, setKeywords] = useState([]);//keywords is used to store the list of keywords returned by the API
+  const [isLoading, setIsLoading] = useState(false);//isLoading is used to show the loading state while the API request is being processed
+  const [error, setError] = useState('');//error is used to show any error messages if the API request fails
+  const [previewText, setPreviewText] = useState('');// previewText is used to show the text in the preview section after inserting keywords
   const handleTextSubmit = async (text) => {
-    setInputText(text);
-    setPreviewText(text);
-    setIsLoading(true);
-    setError('');
+    setInputText(text);// Set the input text to the state for re-rendering
+    setPreviewText(text);// Set the preview text to the state for showing in the preview section
+    setIsLoading(true);// Set loading state to true while making the API request
+    setError('');// Reset any previous error messages
     
     try {
       // Construct URL properly - remove trailing slash and ensure proper path
-      const apiUrl = `${API_BASE_URL.replace(/\/+$/, '')}/api/analyze`;
+      const apiUrl = `${API_BASE_URL.replace(/\/+$/, '')}/api/analyze`; // Ensure no double slashes
       console.log('Making API request to:', apiUrl);
       
       const response = await fetch(apiUrl, {
@@ -34,18 +33,18 @@ function App() {
           'Accept': 'application/json',
         },
         body: JSON.stringify({ text }),
-      });
+      }); // Send the text as JSON in the request body  
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data = await response.json(); // Parse the JSON response from the API that contains the analysis results 
       console.log('API Response:', data);
       
-      setSeoResults(data.analysis);
-      setKeywords(data.keywords || []);
-      setIsLoading(false);
+      setSeoResults(data.analysis); // Set the analysis results in the state for rendering
+      setKeywords(data.keywords || []); // Set the keywords in the state for rendering
+      setIsLoading(false); // Set loading state to false after the API request is complete
     } catch (err) {
       console.error('Error:', err);
       
@@ -56,7 +55,7 @@ function App() {
       setKeywords(mockData.keywords || []);
       setError(`API unavailable - using offline analysis (${err.message})`);
       setIsLoading(false);
-    }
+    } // if the API request fails, use the mock analysis function to generate results
   };
 
   // Mock analysis function for fallback
@@ -90,49 +89,39 @@ function App() {
         { text: 'web content', relevance: 70 }
       ]
     };
-  };
+  }; // This function generates mock analysis data for fallback purposes and there is some logic to calculate readability score, keyword density, and improvement tips based on the input text.
 
   const insertKeyword = (keyword) => {
-    const sentences = previewText.split('. ');
+    const sentences = previewText.split('. '); // Split the preview text into sentences for insertion
     
     for (let i = 0; i < sentences.length; i++) {
       if (!sentences[i].toLowerCase().includes(keyword.toLowerCase())) {
-        const words = sentences[i].split(' ');
+        const words = sentences[i].split(' '); // Split the sentence into words to find a suitable insertion point
         if (words.length > 5) {
-          const insertPosition = Math.min(3, Math.floor(words.length / 3));
-          words.splice(insertPosition, 0, keyword);
-          sentences[i] = words.join(' ');
-          break;
+          const insertPosition = Math.min(3, Math.floor(words.length / 3)); // Insert the keyword at a position that maintains natural flow, e.g., after the first few words
+          words.splice(insertPosition, 0, keyword); // Insert the keyword at the calculated position
+          sentences[i] = words.join(' '); // Join the words back into a sentence
+          break; // Exit the loop after inserting the keyword to avoid multiple insertions
         }
       }
     }
     
     const updatedText = sentences.join('. ');
     setPreviewText(updatedText);
-  };
+  }; // This function inserts the selected keyword into the preview text at a suitable position, ensuring it doesn't disrupt the flow of the content. It splits the preview text into sentences, checks if the keyword is already present, and inserts it at an appropriate position if not.
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>SEO Text Analyzer</h1>
-        <p>AI-powered content analysis for better search engine visibility</p>
-        <div className="api-status">
-          <small>API: {API_BASE_URL}</small>
-          <small style={{ marginLeft: '10px', color: '#28a745' }}>
-            Status: {process.env.NODE_ENV || 'development'}
-          </small>
-        </div>
-      </header>
-      
+     
       <main className="app-main">
         <div className="input-section">
-          <TextInput onSubmit={handleTextSubmit} />
+          <TextInput onSubmit={handleTextSubmit} /> {/* This component handles the text input from the user and submits it for analysis */}
           {!inputText && !isLoading && (
             <div className="instructions">
               <p>Enter your text above to get AI-powered SEO analysis and recommendations.</p>
             </div>
           )}
-        </div>
+        </div> {/* This section contains the text input component where users can enter their content for analysis. andit will perfom on */}
         
         {isLoading && (
           <div className="loading">
@@ -153,11 +142,11 @@ function App() {
           </div>
         )}
         
-        {seoResults && (
+        {seoResults && ( // This section displays the SEO analysis results and allows users to interact with keywords and preview text.
           <div className="results-section">
             <div className="results-container">
               <Results analysis={seoResults} />
-            </div>
+            </div> {/* This component displays the SEO analysis results, including readability score, keyword density, word count, and improvement tips. */}
             
             <div className="keywords-preview-container">
               <div className="keywords-container">
@@ -182,16 +171,14 @@ function App() {
                   >
                     Copy to Clipboard
                   </button>
-                </div>
+                </div> {/* This component displays the optimized text preview after keyword insertion and allows users to copy the optimized text to the clipboard. */}
               </div>
             </div>
           </div>
         )}
       </main>
       
-      <footer className="app-footer">
-        <p>2025-06-08 05:01:44 | User: itsanubhav009 | Powered by TextRazor AI</p>
-      </footer>
+     
     </div>
   );
 }
