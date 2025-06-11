@@ -6,7 +6,7 @@ SEO Analyzer is a comprehensive web application that uses AI to analyze text con
 
 [https://seo-analyzer-2b8f.vercel.app/](https://seo-analyzer-2b8f.vercel.app/)
 
-![SEO Analyzer Screenshot](screenshot.png)
+
 
 ## Features
 
