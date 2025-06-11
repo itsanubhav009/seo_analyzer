@@ -112,7 +112,16 @@ function App() {
 
   return (
     <div className="app">
-     
+      <header className="app-header">
+        <h1>SEO Text Analyzer</h1>
+        <p>AI-powered content analysis for better search engine visibility</p>
+        <div className="api-status">
+          <small>API: {API_BASE_URL}</small>
+          <small style={{ marginLeft: '10px', color: '#28a745' }}>
+            Status: {process.env.NODE_ENV || 'development'}Add commentMore actions
+          </small>
+        </div>
+      </header>
       <main className="app-main">
         <div className="input-section">
           <TextInput onSubmit={handleTextSubmit} /> {/* This component handles the text input from the user and submits it for analysis */}

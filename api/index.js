@@ -6,6 +6,8 @@ const app = express();
 
 // --- START CORS Configuration ---
 // Allow any Vercel deployment of your project and localhost for dev
+// the regex is used to match any subdomain of your Vercel project
+//because Vercel deployments can have dynamic subdomains, we use regex to match them.
 const allowedOrigins = [
   /^https:\/\/seo-analyzer-[a-z0-9-]+\.vercel\.app$/, // any vercel preview or production client (replace with your actual Vercel project pattern)
   /^https:\/\/seo-analyzer-one\.vercel\.app$/,         // your API production URL
@@ -14,31 +16,31 @@ const allowedOrigins = [
   /^http:\/\/127\.0\.0\.1:\d+$/,                       // 127.0.0.1 for dev
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  let allowed = false;
+app.use((req, res, next) => { // Custom CORS middleware
+  const origin = req.headers.origin; // get the origin of the request
+  let allowed = false; // default to not allowed
   if (!origin) allowed = true; // allow server-to-server and curl calls
-  else {
+  else { 
     allowed = allowedOrigins.some((pattern) =>
       typeof pattern === 'string'
         ? pattern === origin
         : pattern.test(origin)
-    );
+    ); // check if the origin matches any of the allowed patterns
   }
   if (allowed && origin) {
-    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Origin', origin); // set the allowed origin header
     res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept');
+  } // if the origin is allowed, set the Access-Control-Allow-Origin header
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS'); // set allowed methods
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept'); // set allowed headers
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
-  }
-  next();
+  } // if the request is an OPTIONS preflight request, send 200 OK
+  next(); // call the next middleware or route handler
 });
 // --- END CORS Configuration ---
 
-app.use(express.json());
+app.use(express.json()); // Parse JSON request bodies
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -53,7 +55,7 @@ app.get('/', (req, res) => {
       health: '/health'
     }
   });
-});
+}); // This endpoint provides basic information about the API and available endpoints
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
@@ -71,26 +73,26 @@ app.post('/api/analyze', async (req, res) => {
   console.log('Request body:', req.body);
   console.log('Origin:', req.headers.origin);
   
-  const { text } = req.body;
+  const { text } = req.body; // Extract text from request body
   
   if (!text) {
     return res.status(400).json({ error: 'Text is required' });
-  }
+  } // If no text is provided, return a 400 Bad Request error
   
   try {
     // Send text to TextRazor API
-    const textRazorResponse = await analyzeWithTextRazor(text);
+    const textRazorResponse = await analyzeWithTextRazor(text); // Call the function to analyze text with TextRazor API
     
     // Process API response to extract keywords and analysis
-    const processedData = processTextRazorResponse(textRazorResponse, text);
+    const processedData = processTextRazorResponse(textRazorResponse, text); // Process the TextRazor response to extract keywords and generate analysis
     
-    return res.json(processedData);
+    return res.json(processedData); // Return the processed data as JSON response
   } catch (error) {
     console.error('Analysis error:', error);
     
     // Fallback to mock data if TextRazor fails
-    const fallbackData = generateMockAnalysis(text);
-    return res.json(fallbackData);
+    const fallbackData = generateMockAnalysis(text); // Generate mock analysis data if TextRazor API fails
+    return res.json(fallbackData); // Return the mock analysis data as JSON response
   }
 });
 
@@ -109,28 +111,28 @@ app.get('/api/analyze', (req, res) => {
 
 // Function to analyze text with TextRazor API
 async function analyzeWithTextRazor(text) {
-  const API_KEY = process.env.TEXTRAZOR_API_KEY || '3e0aaae0f349c179fd484eba3073815034b74bbd6ff2c839ebde1dff';
+  const API_KEY = process.env.TEXTRAZOR_API_KEY || '3e0aaae0f349c179fd484eba3073815034b74bbd6ff2c839ebde1dff'; // Replace with your actual TextRazor API key or set it in environment variables
   
-  try {
+  try { // Make sure to handle the API key securely, ideally using environment variables
     const response = await axios({
       method: 'post',
       url: 'https://api.textrazor.com/',
       headers: {
         'x-textrazor-key': API_KEY,
         'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      }, // Set headers for TextRazor API request
       data: new URLSearchParams({
         'text': text,
         'extractors': 'entities,topics,words,phrases,relations,entailments,senses'
-      }),
-      timeout: 10000 // 10 second timeout
-    });
+      }), // Use URLSearchParams to format the data correctly for application/x-www-form-urlencoded
+      timeout: 10000 // 10 second timeout this is to prevent long waits for API responses
+    }); // Send POST request to TextRazor API with text and extractors
     
-    return response.data;
+    return response.data; // Return the response data from TextRazor API
   } catch (error) {
     console.error('TextRazor API error:', error.message);
     throw new Error('Failed to analyze with TextRazor');
-  }
+  } // If the TextRazor API request fails, log the error and throw an error to be caught in the main API endpoint
 }
 
 // Process the TextRazor response
@@ -138,16 +140,16 @@ function processTextRazorResponse(apiResponse, originalText) {
   const keywords = [];
   
   // Add entities as keywords
-  if (apiResponse.response && apiResponse.response.entities) {
+  if (apiResponse.response && apiResponse.response.entities) { // Check if the response contains entities
     apiResponse.response.entities.forEach(entity => {
       // Only add relevant entities with high confidence
       if (entity.relevanceScore > 0.5 && !keywords.some(k => k.text.toLowerCase() === entity.entityId.toLowerCase())) {
-        keywords.push({
+        keywords.push({ 
           text: entity.entityId,
           relevance: Math.round(entity.relevanceScore * 100)
-        });
-      }
-    });
+        }); // Add entity to keywords if it has a high relevance score and is not already included
+      } 
+    });// Loop through each entity in the response and add it to the keywords array if it meets the criteria
   }
   
   // Add topics as keywords
@@ -157,17 +159,17 @@ function processTextRazorResponse(apiResponse, originalText) {
         keywords.push({
           text: topic.label,
           relevance: Math.round(topic.score * 100)
-        });
+        }); // Add topic to keywords if it has a high score and is not already included
       }
-    });
+    }); // Loop through each topic in the response and add it to the keywords array if it meets the criteria
   }
   
   // Sort keywords by relevance (highest first) and limit to top 10
-  keywords.sort((a, b) => b.relevance - a.relevance);
-  const topKeywords = keywords.slice(0, 10);
+  keywords.sort((a, b) => b.relevance - a.relevance); // Sort keywords in descending order based on relevance score
+  const topKeywords = keywords.slice(0, 10); // Get top 10 keywords based on relevance score
   
   // Generate SEO analysis
-  return generateAnalysis(originalText, topKeywords);
+  return generateAnalysis(originalText, topKeywords); 
 }
 
 // Generate mock analysis for fallback
@@ -185,20 +187,20 @@ function generateMockAnalysis(text) {
 
 // Generate analysis data
 function generateAnalysis(originalText, keywords) {
-  const wordCount = originalText.split(/\s+/).length;
+  const wordCount = originalText.split(/\s+/).length; // Count words by splitting on whitespace
   
   // Calculate readability (simplified Flesch-Kincaid)
-  const sentences = originalText.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
-  const avgWordsPerSentence = sentences > 0 ? wordCount / sentences : wordCount;
-  const readabilityScore = Math.max(0, Math.min(100, 100 - (avgWordsPerSentence - 10) * 5));
+  const sentences = originalText.split(/[.!?]+/).filter(s => s.trim().length > 0).length; // Count sentences by splitting on punctuation
+  const avgWordsPerSentence = sentences > 0 ? wordCount / sentences : wordCount; // Calculate average words per sentence
+  const readabilityScore = Math.max(0, Math.min(100, 100 - (avgWordsPerSentence - 10) * 5)); // Calculate a simplified readability score based on average words per sentence
   
   // Calculate keyword density for top keywords
-  let keywordDensity = 0;
+  let keywordDensity = 0; // Initialize keyword density
   if (keywords.length > 0) {
-    const primaryKeyword = keywords[0].text.toLowerCase();
-    const regex = new RegExp(`\\b${primaryKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-    const matches = originalText.match(regex) || [];
-    keywordDensity = parseFloat(((matches.length / wordCount) * 100).toFixed(2));
+    const primaryKeyword = keywords[0].text.toLowerCase(); // Use the first keyword as the primary keyword for density calculation
+    const regex = new RegExp(`\\b${primaryKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'); // Create a regex to match the primary keyword, ensuring it matches whole words only
+    const matches = originalText.match(regex) || []; // Find all matches of the primary keyword in the original text
+    keywordDensity = parseFloat(((matches.length / wordCount) * 100).toFixed(2)); // Calculate keyword density as a percentage
   }
   
   // Generate improvement tips
@@ -242,7 +244,10 @@ function generateAnalysis(originalText, keywords) {
       wordCount,
       improvementTips
     }
-  };
+  }; // Return the analysis data including keywords and various metrics
+  // The analysis includes readability score, keyword density, word count, and improvement tips based on the content
+  // This function generates a comprehensive analysis of the text, including keyword suggestions and SEO improvement tips.
+  // It returns an object containing the keywords and analysis data.
 }
 
 // Health check endpoint
